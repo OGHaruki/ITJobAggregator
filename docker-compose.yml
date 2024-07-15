@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    image: 'demo_image:2'
+    build:
+      context: .
+    container_name: app
+    depends_on:
+      - db
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/JobOffers
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+    ports:
+      - "8080:8080"
+
+  db:
+    image: postgres
+    container_name: db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=JobOffers
+    ports:
+      - "5432:5432"
