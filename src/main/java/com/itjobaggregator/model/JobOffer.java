@@ -1,53 +1,32 @@
 package com.itjobaggregator.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "job_offers")
 public class JobOffer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String title;
+    private String companyName;
+    private String workplaceType;
+    private String experienceLevel;
+    private String publishedAt;
+    // private String technologyStack;  Brakuje go w api justjoinit
+    // private String location;         Dodać wiele ofert, każda z różną lokalizacją lub dodawać według lokalizacji
+    private String rawData;
+
+    @Enumerated(EnumType.STRING)
+    private JobSource source;
 
     @ElementCollection
     private List<String> requiredSkills;
-
-    @ElementCollection
-    private List<String> nieToHaveSkills;
-
-    private String workplaceType;
-
-    private String workingTime;
-
-    private String experienceLevel;
-
-    private String companyName;
-
-    @Override
-    public String toString() {
-        return "JobOffer{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", requiredSkills=" + requiredSkills +
-                ", nieToHaveSkills=" + nieToHaveSkills +
-                ", workplaceType='" + workplaceType + '\'' +
-                ", workingTime='" + workingTime + '\'' +
-                ", experienceLevel='" + experienceLevel + '\'' +
-                ", companyName='" + companyName + '\'' +
-                '}';
-    }
-
 }

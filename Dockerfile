@@ -29,3 +29,5 @@ WORKDIR /app
 
 # copy the jar file from the first stage
 COPY --from=stage1 /app/target/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
