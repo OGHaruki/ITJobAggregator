@@ -1,6 +1,7 @@
 package com.itjobaggregator.controller;
 
 import com.itjobaggregator.model.JobOffer;
+import com.itjobaggregator.service.JobOfferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,16 +18,24 @@ import java.util.List;
 @RequestMapping("/api")
 public class JobOfferController {
 
-    @Autowired
-    private JobOfferRepository jobOfferRepository;
+    private final JobOfferService jobOfferService;
 
+    @Autowired
+    public JobOfferController(JobOfferService jobOfferService) {
+        this.jobOfferService = jobOfferService;
+    }
     @RequestMapping("/")
     public String home() {
         return "Hello, World!";
     }
 
-    @GetMapping("/job_offers")
-    public ResponseEntity<List<JobOffer>> getAllJobOffers() {
-        return ResponseEntity.ok(jobOfferRepository.findAll());
+    @GetMapping("/fetch-job-offers")
+    public String fetchJobOffers() {
+        try {
+            jobOfferService.fetchAndSaveJobOffers();
+            return "Job offers fetched and saved successfully!";
+        } catch (Exception e) {
+            return "An error occurred while fetching job offers: " + e.getMessage();
+        }
     }
 }

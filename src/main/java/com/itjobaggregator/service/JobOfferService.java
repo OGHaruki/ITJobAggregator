@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.Console;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -56,6 +57,19 @@ public class JobOfferService {
     private String fetchJobOffers(String url) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
+                .header("Accept", "application/json, text/plain, */*")
+                .header("Accept-Language", "pl,en-US;q=0.7,en;q=0.3")
+                .header("Accept-Encoding", "identity")
+                .header("x-snowplow", "eyJ1c2VySWQiOiJkMDI4NTVmOC0yNDk2LTQ2MDEtOWE0Zi0zMTMzNGZhMTg4YWYiLCJzZXNzaW9uSWQiOiIxY2M1NGQyMi1lNDYyLTQ0ODItOTBkZC01MTA4NWFjNjc0MzgifQ==")
+                .header("Version", "2")
+                .header("Origin", "https://justjoin.it")
+                .header("Referer", "https://justjoin.it/")
+                .header("Sec-Fetch-Dest", "empty")
+                .header("Sec-Fetch-Mode", "cors")
+                .header("Sec-Fetch-Site", "same-site")
+                .header("If-None-Match", "W/\"2a035-Ula23U4wUzwWifamzniv23zxa+s\"")
+                .header("TE", "trailers")
                 .GET()
                 .build();
 
@@ -63,6 +77,9 @@ public class JobOfferService {
 
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if(response.statusCode() != 200) {
+                System.out.println("Failed to fetch job offers from JustJoinIT API. HTTP status code: " + response.statusCode());
+            }
         } catch (IOException | InterruptedException e) {
             Logger.getLogger(JobOfferService.class.getName()).log(Level.SEVERE, null, e);
             return null;
