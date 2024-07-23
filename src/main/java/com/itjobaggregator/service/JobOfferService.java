@@ -3,8 +3,10 @@ package com.itjobaggregator.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itjobaggregator.model.JobLocation;
 import com.itjobaggregator.model.JobOffer;
 import com.itjobaggregator.model.JobSource;
+import com.itjobaggregator.repository.JobLocationRepository;
 import com.itjobaggregator.repository.JobOfferRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +28,9 @@ public class JobOfferService {
 
     @Autowired
     private JobOfferRepository jobOfferRepository;
+
+    @Autowired
+    private JobLocationRepository jobLocationRepository;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -76,11 +82,8 @@ public class JobOfferService {
             jobOffer.setCompanyName(jobNode.get("companyName").asText());
             jobOffer.setWorkplaceType(jobNode.get("workplaceType").asText());
             jobOffer.setExperienceLevel(jobNode.get("experienceLevel").asText());
-            jobOffer.setPublishedAt(jobNode.get("publishedAt").asText());
             jobOffer.setRawData(jobNode.toString());
             jobOffer.setSource(JobSource.JustJoinIT);
-
-            //-----> Tutaj wrócić, aby ustandaryzować dane oraz dodać lokalizację oferty
 
             List<String> requiredSkills = new ArrayList<>();
             if (jobNode.has("requiredSkills")) {
@@ -90,6 +93,26 @@ public class JobOfferService {
             }
             jobOffer.setRequiredSkills(requiredSkills);
 
+            if(jobNode.has("multilocation")) {
+                for (JsonNode locationNode : jobNode.get("multilocation")) {
+                    String city = locationNode.get("city").asText();
+                    Double latitude = locationNode.has("latitude") ? locationNode.get("latitude").asDouble() : null;
+                    Double longitude = locationNode.has("longitude") ? locationNode.get("longitude").asDouble() : null;
+
+                    // Check if location already exists in database
+                    Optional<JobLocation> existingLocation = jobLocationRepository.findJobLocationByCity(city);
+                    if(existingLocation.isPresent()) {
+                        jobOffer.addJobLocation(existingLocation.get());
+                    } else {
+                        JobLocation jobLocation = new JobLocation();
+                        jobLocation.setCity(city);
+                        jobLocation.setLatitude(latitude);
+                        jobLocation.setLongitude(longitude);
+                        jobLocationRepository.save(jobLocation);
+                        jobOffer.addJobLocation(jobLocation);
+                    }
+                }
+            }
             jobOfferList.add(jobOffer);
         }
         return jobOfferList;
