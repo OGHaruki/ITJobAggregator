@@ -20,14 +20,14 @@ public class JobOffer {
     private String companyName;
     private String workplaceType;
     private String experienceLevel;
-    private String rawData;
+    //private String rawData;
     // private String technologyStack;  Brakuje go w api justjoinit
 
     @Enumerated(EnumType.STRING)
     private JobSource source;
 
-    @ElementCollection
-    private List<String> requiredSkills;
+    @OneToMany(mappedBy = "jobOffer", cascade = CascadeType.ALL)
+    private List<RequiredSkills> requiredSkills = new ArrayList<>();
 
     @OneToMany(mappedBy = "jobOffer", cascade = CascadeType.ALL)
     private List<JobLocation> jobLocations = new ArrayList<>();
@@ -40,6 +40,28 @@ public class JobOffer {
     public void removeJobLocation(JobLocation jobLocation) {
         jobLocations.remove(jobLocation);
         jobLocation.setJobOffer(null);
+    }
+
+    public void addRequiredSkill(RequiredSkills requiredSkill) {
+        requiredSkills.add(requiredSkill);
+        requiredSkill.setJobOffer(this);
+    }
+
+    public void removeRequiredSkill(RequiredSkills requiredSkill) {
+        requiredSkills.remove(requiredSkill);
+        requiredSkill.setJobOffer(null);
+    }
+
+    @Override
+    public String toString() {
+        return "JobOffer{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", companyName='" + companyName + '\'' +
+                ", workplaceType='" + workplaceType + '\'' +
+                ", experienceLevel='" + experienceLevel + '\'' +
+                ", source=" + source +
+                '}';
     }
 }
 

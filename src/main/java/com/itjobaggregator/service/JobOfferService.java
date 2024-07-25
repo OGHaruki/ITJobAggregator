@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itjobaggregator.model.JobLocation;
 import com.itjobaggregator.model.JobOffer;
 import com.itjobaggregator.model.JobSource;
+import com.itjobaggregator.model.RequiredSkills;
 import com.itjobaggregator.repository.JobLocationRepository;
 import com.itjobaggregator.repository.JobOfferRepository;
+import com.itjobaggregator.repository.RequiredSkillsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,9 @@ public class JobOfferService {
     @Autowired
     private JobLocationRepository jobLocationRepository;
 
+    @Autowired
+    private RequiredSkillsRepository requiredSkillsRepository;
+
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
@@ -51,6 +56,7 @@ public class JobOfferService {
         if (justJoinItResponse != null) {
             List<JobOffer> jobOfferList = parseJustJoinItResponse(justJoinItResponse);
             jobOfferRepository.saveAll(jobOfferList);
+            jobOfferList.forEach(System.out::println);
         }
     }
 
@@ -99,7 +105,7 @@ public class JobOfferService {
             jobOffer.setCompanyName(jobNode.get("companyName").asText());
             jobOffer.setWorkplaceType(jobNode.get("workplaceType").asText());
             jobOffer.setExperienceLevel(jobNode.get("experienceLevel").asText());
-            jobOffer.setRawData(jobNode.toString());
+            //1jobOffer.setRawData(jobNode.toString());
             jobOffer.setSource(JobSource.JustJoinIT);
 
             List<String> requiredSkills = new ArrayList<>();
@@ -108,7 +114,18 @@ public class JobOfferService {
                     requiredSkills.add(skillNode.asText());
                 }
             }
-            jobOffer.setRequiredSkills(requiredSkills);
+
+            for (String skill : requiredSkills) {
+                Optional<RequiredSkills> existingSkill = requiredSkillsRepository.findRequiredSkillsByName(skill);
+                if(existingSkill.isPresent()) {
+                    jobOffer.addRequiredSkill(existingSkill.get());
+                } else {
+                    RequiredSkills newSkill = new RequiredSkills();
+                    newSkill.setName(skill);
+                    requiredSkillsRepository.save(newSkill);
+                    jobOffer.addRequiredSkill(newSkill);
+                }
+            }
 
             if(jobNode.has("multilocation")) {
                 for (JsonNode locationNode : jobNode.get("multilocation")) {
