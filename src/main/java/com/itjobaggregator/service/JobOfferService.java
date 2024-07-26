@@ -147,6 +147,15 @@ public class JobOfferService {
         }
     }
 
+    private JobLocation createAndSaveNewCity(String city, Double latitude, Double longitude) {
+        JobLocation jobLocation = new JobLocation();
+        jobLocation.setCity(city);
+        jobLocation.setLatitude(latitude);
+        jobLocation.setLongitude(longitude);
+        jobLocationRepository.save(jobLocation);
+        return jobLocation;
+    }
+
 
     private List<JobOffer> parseJustJoinItResponse(String justJoinItResponse) throws JsonProcessingException {
 
@@ -183,11 +192,7 @@ public class JobOfferService {
                     if(existingLocation.isPresent()) {
                         jobOffer.addJobLocation(existingLocation.get());
                     } else {
-                        JobLocation jobLocation = new JobLocation();
-                        jobLocation.setCity(city);
-                        jobLocation.setLatitude(latitude);
-                        jobLocation.setLongitude(longitude);
-                        jobLocationRepository.save(jobLocation);
+                        JobLocation jobLocation = createAndSaveNewCity(city, latitude, longitude);
                         jobOffer.addJobLocation(jobLocation);
                     }
                 }
@@ -233,6 +238,37 @@ public class JobOfferService {
                 }
             }
             saveSkillsToDatabase(jobOffer, requiredSkills);
+
+            JsonNode locationNode = jobNode.get("location");
+            if (locationNode != null) {
+                JsonNode placesNode = locationNode.get("places");
+                if (placesNode.isArray() && !placesNode.isEmpty()) {
+                    for (JsonNode placeNode : placesNode) {
+                        String city = "";
+                        if (placeNode.has("city")) {
+                            city = placeNode.get("city").asText();
+                        } else if (placeNode.has("province")) {
+                            city = placeNode.get("province").asText();
+                        }
+                        Double latitude = null, longitude = null;
+                        if (placeNode.has("geoLocation")) {
+                            JsonNode geoLocationNode = placeNode.get("geoLocation");
+                            latitude = placeNode.has("latitude") ? placeNode.get("latitude").asDouble() : null;
+                            longitude = placeNode.has("longitude") ? placeNode.get("longitude").asDouble() : null;
+                        }
+
+                        Optional<JobLocation> existingLocation = jobLocationRepository.findJobLocationByCity(city);
+                        if(existingLocation.isPresent()) {
+                            jobOffer.addJobLocation(existingLocation.get());
+                        } else {
+                            JobLocation jobLocation = createAndSaveNewCity(city, latitude, longitude);
+                            jobOffer.addJobLocation(jobLocation);
+                        }
+                    }
+                }
+            }
+            jobOfferList.add(jobOffer);
         }
+        return jobOfferList;
     }
 }
