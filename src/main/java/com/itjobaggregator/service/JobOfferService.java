@@ -11,7 +11,9 @@ import com.itjobaggregator.repository.JobLocationRepository;
 import com.itjobaggregator.repository.JobOfferRepository;
 import com.itjobaggregator.repository.RequiredSkillsRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,8 +24,7 @@ import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
 
 @Service
 public class JobOfferService {
@@ -40,12 +41,15 @@ public class JobOfferService {
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
+    private static final Logger log = LoggerFactory.getLogger(JobOfferService.class);
+
     public JobOfferService() {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
     }
 
     @Transactional
+    @Scheduled(fixedRate = 3600000) // Automatically fetch new job offers every 6 hours
     public void fetchAndSaveJobOffers() throws JsonProcessingException {
         // Fetch job offers from JustJoinIT API
         String justJoinItUrl = "https://api.justjoin.it/v2/user-panel/offers?&page=2&sortBy=published&orderBy=DESC&perPage=100&salaryCurrencies=PLN";
@@ -57,16 +61,26 @@ public class JobOfferService {
         // Parse and save job offers to database
         if (justJoinItResponse != null) {
             List<JobOffer> jobOfferList = parseJustJoinItResponse(justJoinItResponse);
-            jobOfferRepository.saveAll(jobOfferList);
-            //jobOfferList.forEach(System.out::println);
+            saveNewJobOffers(jobOfferList);
         }
 
         if (noFluffJobsResponse != null) {
             List<JobOffer> jobOfferList = parseNoFluffResponse(noFluffJobsResponse);
-            jobOfferRepository.saveAll(jobOfferList);
-            //jobOfferList.forEach(System.out::println);
+            saveNewJobOffers(jobOfferList);
+
         }
     }
+
+    void saveNewJobOffers(List<JobOffer> jobOfferList) {
+        for (JobOffer jobOffer : jobOfferList) {
+            Optional<JobOffer> existingJobOffer = jobOfferRepository.findJobOfferByTitleAndCompanyName(jobOffer.getTitle(), jobOffer.getCompanyName());
+            if(existingJobOffer.isEmpty()) {
+                jobOfferRepository.save(jobOffer);
+                log.info("Saved new job offer: {}", jobOffer);
+            }
+        }
+    }
+
 
     private String fetchJustJoinItJobOffers(String url) {
         HttpRequest request = HttpRequest.newBuilder()
@@ -95,7 +109,7 @@ public class JobOfferService {
                 System.out.println("Failed to fetch job offers from JustJoinIT API. HTTP status code: " + response.statusCode());
             }
         } catch (IOException | InterruptedException e) {
-            Logger.getLogger(JobOfferService.class.getName()).log(Level.SEVERE, null, e);
+            log.info("Failed to fetch job offers from JustJoinIT API", e);
             return null;
         }
         return response.body();
@@ -127,7 +141,8 @@ public class JobOfferService {
                 System.out.println("Failed to fetch job offers from NoFluffJobs API. HTTP status code: " + response.statusCode());
             }
         } catch (IOException | InterruptedException e) {
-            Logger.getLogger(JobOfferService.class.getName()).log(Level.SEVERE, null, e);
+            //Logger.getLogger(JobOfferService.class.getName()).log(Level.SEVERE, null, e);
+            log.info("Failed to fetch job offers from NoFluffJobs API", e);
             return null;
         }
         return response.body();
