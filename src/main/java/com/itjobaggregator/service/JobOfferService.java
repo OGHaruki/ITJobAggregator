@@ -71,9 +71,14 @@ public class JobOfferService {
         }
     }
 
+    public void deleteAllJobOffers() {
+        jobOfferRepository.deleteAll();
+        log.info("All job offers have been deleted.");
+    }
+
     void saveNewJobOffers(List<JobOffer> jobOfferList) {
         for (JobOffer jobOffer : jobOfferList) {
-            Optional<JobOffer> existingJobOffer = jobOfferRepository.findJobOfferByTitleAndCompanyName(jobOffer.getTitle(), jobOffer.getCompanyName());
+            Optional<JobOffer> existingJobOffer = jobOfferRepository.findJobOfferBySlug(jobOffer.getSlug());
             if(existingJobOffer.isEmpty()) {
                 jobOfferRepository.save(jobOffer);
                 log.info("Saved new job offer: {}", jobOffer);
@@ -180,6 +185,7 @@ public class JobOfferService {
 
         for (JsonNode jobNode : jobOffersNode) {
             JobOffer jobOffer = new JobOffer();
+            jobOffer.setSlug(jobNode.get("slug").asText());
             jobOffer.setTitle(jobNode.get("title").asText());
             jobOffer.setCompanyName(jobNode.get("companyName").asText());
             jobOffer.setWorkplaceType(jobNode.get("workplaceType").asText());
@@ -225,6 +231,7 @@ public class JobOfferService {
 
         for (JsonNode jobNode : jobOffersNode) {
             JobOffer jobOffer = new JobOffer();
+            jobOffer.setSlug(jobNode.get("id").asText());
             jobOffer.setTitle(jobNode.get("title").asText());
             jobOffer.setCompanyName(jobNode.get("name").asText());
             String workplaceType = jobNode.get("fullyRemote").asText();

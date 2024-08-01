@@ -16,6 +16,7 @@ public class JobOffer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String slug;
     private String title;
     private String companyName;
     private String workplaceType;
@@ -56,6 +57,7 @@ public class JobOffer {
     public String toString() {
         return "JobOffer{" +
                 "id=" + id +
+                ", slug='" + slug + '\'' +
                 ", title='" + title + '\'' +
                 ", companyName='" + companyName + '\'' +
                 ", workplaceType='" + workplaceType + '\'' +

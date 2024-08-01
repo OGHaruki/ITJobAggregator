@@ -43,8 +43,7 @@ public class JobOfferServiceTest {
         newJobOffer.setTitle("Java Developer");
         newJobOffer.setCompanyName("Non-existing-location");
 
-        when(jobOfferRepository.findJobOfferByTitleAndCompanyName(newJobOffer.getTitle(), newJobOffer.getCompanyName()))
-                .thenReturn(Optional.empty());
+        when(jobOfferRepository.findJobOfferBySlug(newJobOffer.getSlug())).thenReturn(Optional.empty());
 
         jobOfferService.saveNewJobOffers(Collections.singletonList(newJobOffer));
 
@@ -60,8 +59,7 @@ public class JobOfferServiceTest {
         newJobOffer.setTitle("Java Developer");
         newJobOffer.setCompanyName("Non-existing-location");
 
-        when(jobOfferRepository.findJobOfferByTitleAndCompanyName(newJobOffer.getTitle(), newJobOffer.getCompanyName()))
-                .thenReturn(Optional.of(newJobOffer));
+        when(jobOfferRepository.findJobOfferBySlug(newJobOffer.getSlug())).thenReturn(Optional.of(newJobOffer));
 
         jobOfferService.saveNewJobOffers(Collections.singletonList(newJobOffer));
 
