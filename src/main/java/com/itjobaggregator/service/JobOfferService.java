@@ -56,7 +56,7 @@ public class JobOfferService {
         String justJoinItResponse = fetchJustJoinItJobOffers(justJoinItUrl);
 
         String noFluffJobsUrl = "https://nofluffjobs.com/api/joboffers/main?pageTo=2&pageSize=20&withSalaryMatch=true&salaryCurrency=PLN&salaryPeriod=month&region=pl&language=pl-PL";
-        String noFluffJobsResponse = fetchNoFluffJobOffers(noFluffJobsUrl);
+        // String noFluffJobsResponse = fetchNoFluffJobOffers(noFluffJobsUrl);
 
         // Parse and save job offers to database
         if (justJoinItResponse != null) {
@@ -64,11 +64,11 @@ public class JobOfferService {
             saveNewJobOffers(jobOfferList);
         }
 
-        if (noFluffJobsResponse != null) {
+        /*if (noFluffJobsResponse != null) {
             List<JobOffer> jobOfferList = parseNoFluffResponse(noFluffJobsResponse);
             saveNewJobOffers(jobOfferList);
 
-        }
+        }*/
     }
 
     public void deleteAllJobOffers() {
@@ -76,12 +76,16 @@ public class JobOfferService {
         log.info("All job offers have been deleted.");
     }
 
+    @Transactional
     void saveNewJobOffers(List<JobOffer> jobOfferList) {
         for (JobOffer jobOffer : jobOfferList) {
-            Optional<JobOffer> existingJobOffer = jobOfferRepository.findJobOfferBySlug(jobOffer.getSlug());
+            Optional<JobOffer> existingJobOffer = jobOfferRepository.findFirstJobOfferBySlug(jobOffer.getSlug());
+
             if(existingJobOffer.isEmpty()) {
                 jobOfferRepository.save(jobOffer);
                 log.info("Saved new job offer: {}", jobOffer);
+            } else {
+                log.info("Found existing job offer: {}", existingJobOffer);
             }
         }
     }

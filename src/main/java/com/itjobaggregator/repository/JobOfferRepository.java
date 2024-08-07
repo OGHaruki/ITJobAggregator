@@ -5,8 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface JobOfferRepository extends JpaRepository<JobOffer, Long> {
-    Optional<JobOffer> findJobOfferBySlug(
-            String slug
-    );
+public interface JobOfferRepository extends JpaRepository<JobOffer, Long>, CustomJobOfferRepository {
+    Optional<JobOffer> findFirstJobOfferBySlug(String slug);
+
+    Optional<JobOffer> findJobOfferBySlug(String slug);
 }
