@@ -30,13 +30,13 @@ import org.slf4j.Logger;
 public class JobOfferService {
 
     @Autowired
+    private RequiredSkillService requiredSkillService;
+
+    @Autowired
     private JobOfferRepository jobOfferRepository;
 
     @Autowired
-    private JobLocationRepository jobLocationRepository;
-
-    @Autowired
-    private RequiredSkillsRepository requiredSkillsRepository;
+    private JobLocationService jobLocationService;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -69,11 +69,6 @@ public class JobOfferService {
             saveNewJobOffers(jobOfferList);
 
         }*/
-    }
-
-    public void deleteAllJobOffers() {
-        jobOfferRepository.deleteAll();
-        log.info("All job offers have been deleted.");
     }
 
     @Transactional
@@ -157,29 +152,6 @@ public class JobOfferService {
         return response.body();
     }
 
-    private void saveSkillsToDatabase(JobOffer jobOffer, List<String> requiredSkills) {
-        for (String skill : requiredSkills) {
-            Optional<RequiredSkills> existingSkill = requiredSkillsRepository.findRequiredSkillsByName(skill);
-            if(existingSkill.isPresent()) {
-                jobOffer.addRequiredSkill(existingSkill.get());
-            } else {
-                RequiredSkills newSkill = new RequiredSkills();
-                newSkill.setName(skill);
-                requiredSkillsRepository.save(newSkill);
-                jobOffer.addRequiredSkill(newSkill);
-            }
-        }
-    }
-
-    private JobLocation createAndSaveNewCity(String city, Double latitude, Double longitude) {
-        JobLocation jobLocation = new JobLocation();
-        jobLocation.setCity(city);
-        jobLocation.setLatitude(latitude);
-        jobLocation.setLongitude(longitude);
-        jobLocationRepository.save(jobLocation);
-        return jobLocation;
-    }
-
 
     private List<JobOffer> parseJustJoinItResponse(String justJoinItResponse) throws JsonProcessingException {
 
@@ -204,22 +176,14 @@ public class JobOfferService {
                 }
             }
 
-            saveSkillsToDatabase(jobOffer, requiredSkills);
+            requiredSkillService.saveSkillsToDatabase(jobOffer, requiredSkills);
 
             if(jobNode.has("multilocation")) {
                 for (JsonNode locationNode : jobNode.get("multilocation")) {
                     String city = locationNode.get("city").asText();
                     Double latitude = locationNode.has("latitude") ? locationNode.get("latitude").asDouble() : null;
                     Double longitude = locationNode.has("longitude") ? locationNode.get("longitude").asDouble() : null;
-
-                    // Check if location already exists in database
-                    Optional<JobLocation> existingLocation = jobLocationRepository.findJobLocationByCity(city);
-                    if(existingLocation.isPresent()) {
-                        jobOffer.addJobLocation(existingLocation.get());
-                    } else {
-                        JobLocation jobLocation = createAndSaveNewCity(city, latitude, longitude);
-                        jobOffer.addJobLocation(jobLocation);
-                    }
+                    jobLocationService.saveCityToDatabase(jobOffer, city, latitude, longitude);
                 }
             }
             jobOfferList.add(jobOffer);
@@ -227,7 +191,7 @@ public class JobOfferService {
         return jobOfferList;
     }
 
-    private List<JobOffer> parseNoFluffResponse(String noFluffJobsResponse) throws JsonProcessingException {
+    /*private List<JobOffer> parseNoFluffResponse(String noFluffJobsResponse) throws JsonProcessingException {
 
         JsonNode rootNode = objectMapper.readTree(noFluffJobsResponse);
         JsonNode jobOffersNode = rootNode.get("postings");
@@ -296,5 +260,13 @@ public class JobOfferService {
             jobOfferList.add(jobOffer);
         }
         return jobOfferList;
+    }*/
+
+    public List<JobOffer> getJobOffers() {
+        return jobOfferRepository.findAll();
+    }
+
+    public Optional<List<JobOffer>> getJobOffersByTechnology(String stack) {
+        return jobOfferRepository.findJobOfferByTechStack(stack);
     }
 }

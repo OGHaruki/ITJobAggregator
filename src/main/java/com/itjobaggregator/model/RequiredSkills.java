@@ -4,21 +4,39 @@ package com.itjobaggregator.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "required_skills")
 public class RequiredSkills {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Setter
+
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "job_offer_id")
-    private JobOffer jobOffer;
+    @ManyToMany(mappedBy = "requiredSkills")
+    private Set<JobOffer> jobOffers = new HashSet<>();
+
+    public void addJobOffer(JobOffer jobOffer) {
+        this.jobOffers.add(jobOffer);   // Add the job offer to the linked set of job offers
+        jobOffer.getRequiredSkills().add(this); // Add the skill to the set of required skills of the job offer
+    }
+
+    public void removeJobOffer(JobOffer jobOffer) {
+        this.jobOffers.remove(jobOffer);
+        jobOffer.getRequiredSkills().remove(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
 
     @Override
     public String toString() {

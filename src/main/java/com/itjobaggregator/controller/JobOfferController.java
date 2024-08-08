@@ -9,13 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.itjobaggregator.repository.JobOfferRepository;
-
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
-@RequestMapping("/api")
 public class JobOfferController {
 
     private final JobOfferService jobOfferService;
@@ -24,7 +22,7 @@ public class JobOfferController {
     public JobOfferController(JobOfferService jobOfferService) {
         this.jobOfferService = jobOfferService;
     }
-    @RequestMapping("/")
+    @RequestMapping("/home")
     public String home() {
         return "Hello, World!";
     }
@@ -37,5 +35,15 @@ public class JobOfferController {
         } catch (Exception e) {
             return "An error occurred while fetching job offers: " + e.getMessage();
         }
+    }
+
+    @GetMapping("/job-offers")
+    public ResponseEntity<List<JobOffer>> getJobOffers() {
+        return ResponseEntity.ok(jobOfferService.getJobOffers());
+    }
+
+    @GetMapping("/job-offers/java")
+    public ResponseEntity<Optional<List<JobOffer>>> getJavaJobOffers() {
+        return ResponseEntity.ok(jobOfferService.getJobOffersByTechnology("Java"));
     }
 }
