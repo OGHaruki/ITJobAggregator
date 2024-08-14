@@ -56,7 +56,7 @@ public class JobOfferService {
         String justJoinItResponse = fetchJustJoinItJobOffers(justJoinItUrl);
 
         String noFluffJobsUrl = "https://nofluffjobs.com/api/joboffers/main?pageTo=2&pageSize=20&withSalaryMatch=true&salaryCurrency=PLN&salaryPeriod=month&region=pl&language=pl-PL";
-        // String noFluffJobsResponse = fetchNoFluffJobOffers(noFluffJobsUrl);
+        String noFluffJobsResponse = fetchNoFluffJobOffers(noFluffJobsUrl);
 
         // Parse and save job offers to database
         if (justJoinItResponse != null) {
@@ -64,11 +64,11 @@ public class JobOfferService {
             saveNewJobOffers(jobOfferList);
         }
 
-        /*if (noFluffJobsResponse != null) {
+        if (noFluffJobsResponse != null) {
             List<JobOffer> jobOfferList = parseNoFluffResponse(noFluffJobsResponse);
             saveNewJobOffers(jobOfferList);
 
-        }*/
+        }
     }
 
     @Transactional
@@ -145,7 +145,6 @@ public class JobOfferService {
                 System.out.println("Failed to fetch job offers from NoFluffJobs API. HTTP status code: " + response.statusCode());
             }
         } catch (IOException | InterruptedException e) {
-            //Logger.getLogger(JobOfferService.class.getName()).log(Level.SEVERE, null, e);
             log.info("Failed to fetch job offers from NoFluffJobs API", e);
             return null;
         }
@@ -191,7 +190,7 @@ public class JobOfferService {
         return jobOfferList;
     }
 
-    /*private List<JobOffer> parseNoFluffResponse(String noFluffJobsResponse) throws JsonProcessingException {
+    private List<JobOffer> parseNoFluffResponse(String noFluffJobsResponse) throws JsonProcessingException {
 
         JsonNode rootNode = objectMapper.readTree(noFluffJobsResponse);
         JsonNode jobOffersNode = rootNode.get("postings");
@@ -227,7 +226,7 @@ public class JobOfferService {
                     }
                 }
             }
-            saveSkillsToDatabase(jobOffer, requiredSkills);
+            requiredSkillService.saveSkillsToDatabase(jobOffer, requiredSkills);
 
             JsonNode locationNode = jobNode.get("location");
             if (locationNode != null) {
@@ -243,24 +242,17 @@ public class JobOfferService {
                         Double latitude = null, longitude = null;
                         if (placeNode.has("geoLocation")) {
                             JsonNode geoLocationNode = placeNode.get("geoLocation");
-                            latitude = placeNode.has("latitude") ? placeNode.get("latitude").asDouble() : null;
-                            longitude = placeNode.has("longitude") ? placeNode.get("longitude").asDouble() : null;
+                            latitude = geoLocationNode.has("latitude") ? geoLocationNode.get("latitude").asDouble() : null;
+                            longitude = geoLocationNode.has("longitude") ? geoLocationNode.get("longitude").asDouble() : null;
                         }
-
-                        Optional<JobLocation> existingLocation = jobLocationRepository.findJobLocationByCity(city);
-                        if(existingLocation.isPresent()) {
-                            jobOffer.addJobLocation(existingLocation.get());
-                        } else {
-                            JobLocation jobLocation = createAndSaveNewCity(city, latitude, longitude);
-                            jobOffer.addJobLocation(jobLocation);
-                        }
+                        jobLocationService.saveCityToDatabase(jobOffer, city, latitude, longitude);
                     }
                 }
             }
             jobOfferList.add(jobOffer);
         }
         return jobOfferList;
-    }*/
+    }
 
     public List<JobOffer> getJobOffers() {
         return jobOfferRepository.findAll();

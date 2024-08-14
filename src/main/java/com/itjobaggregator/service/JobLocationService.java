@@ -4,6 +4,7 @@ package com.itjobaggregator.service;
 import com.itjobaggregator.model.JobLocation;
 import com.itjobaggregator.model.JobOffer;
 import com.itjobaggregator.repository.JobLocationRepository;
+import com.itjobaggregator.repository.JobOfferRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,9 @@ public class JobLocationService {
 
     @Autowired
     private JobLocationRepository jobLocationRepository;
+
+    @Autowired
+    private JobOfferRepository jobOfferRepository;
 
     @Transactional
     public void saveCityToDatabase(JobOffer jobOffer, String city, Double latitude, Double longitude) {
@@ -31,6 +35,9 @@ public class JobLocationService {
             jobLocationRepository.save(jobLocation);
         }
 
-        jobOffer.addJobLocation(jobLocation);
+        if (!jobOffer.getJobLocations().contains(jobLocation)) {
+            jobOffer.addJobLocation(jobLocation);
+            jobOfferRepository.save(jobOffer);
+        }
     }
 }
