@@ -2,9 +2,7 @@ version: '3.8'
 
 services:
   app:
-    image: 'job-offers:latest'
-    build:
-      context: .
+    image: 'ghcr.io/ogharuki/job-offers:latest'
     container_name: app
     depends_on:
       - db
@@ -16,7 +14,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=admin
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-
+    volumes:
+      - app-data:/app/data
     ports:
       - "8080:8080"
 
@@ -27,5 +26,11 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=JobOffers
+    volumes:
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+volumes:
+    app-data:
+    db-data:
