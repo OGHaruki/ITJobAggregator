@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   app:
-    image: 'ghcr.io/ogharuki/job-offers:latest'
+    # image: 'ghcr.io/ogharuki/job-offers:latest'
+    image: 'job-offers:latest'
     container_name: app
     depends_on:
       - db
@@ -20,6 +21,7 @@ services:
       - "8080:8080"
 
   db:
+    # image: 'ghcr.io/ogharuki/postgres:latest'
     image: postgres
     container_name: db
     environment:

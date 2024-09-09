@@ -2,6 +2,8 @@ package com.itjobaggregator.controller;
 
 import com.itjobaggregator.model.JobOffer;
 import com.itjobaggregator.service.JobOfferService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -14,6 +16,7 @@ import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:8081")
 @RestController
+@Tag(name = "Job Offer Controller", description = "Endpoints for fetching and retrieving job offers")
 public class JobOfferController {
 
     private final JobOfferService jobOfferService;
@@ -22,7 +25,7 @@ public class JobOfferController {
     public JobOfferController(JobOfferService jobOfferService) {
         this.jobOfferService = jobOfferService;
     }
-    @RequestMapping("/home")
+    @GetMapping("/home")
     public String home() {
         return "Hello, World!";
     }
@@ -37,6 +40,7 @@ public class JobOfferController {
         }
     }
 
+    @Operation(description = "Get all job offers")
     @GetMapping("/job-offers")
     public ResponseEntity<List<JobOffer>> getJobOffers() {
         return ResponseEntity.ok(jobOfferService.getJobOffers());
