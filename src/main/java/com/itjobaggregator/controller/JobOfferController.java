@@ -6,15 +6,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 @CrossOrigin(origins = "http://localhost:8081")
+@RequestMapping("/api")
 @RestController
 @Tag(name = "Job Offer Controller", description = "Endpoints for fetching and retrieving job offers")
 public class JobOfferController {
@@ -40,7 +39,24 @@ public class JobOfferController {
         }
     }
 
-    @Operation(description = "Get all job offers")
+    @GetMapping("/offers")
+    public ResponseEntity<List<JobOffer>> getJobOffers(
+            @RequestParam(name= "tech", required = false) List<String> tech,
+            @RequestParam(name = "seniority", required = false) List<String> seniority,
+            @RequestParam(name = "location", required = false) List<String> location,
+            @RequestParam(name = "from", required = false) LocalDate from,
+            @RequestParam(name = "to", required = false) LocalDate to
+    ) {
+        List<JobOffer> jobOffers = jobOfferService.getJobOffers(tech, seniority, location, from, to);
+
+        if(jobOffers.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(jobOffers);
+    }
+
+    /*@Operation(description = "Get all job offers")
     @GetMapping("/job-offers")
     public ResponseEntity<List<JobOffer>> getJobOffers() {
         return ResponseEntity.ok(jobOfferService.getJobOffers());
@@ -49,5 +65,5 @@ public class JobOfferController {
     @GetMapping("/job-offers/java")
     public ResponseEntity<Optional<List<JobOffer>>> getJavaJobOffers() {
         return ResponseEntity.ok(jobOfferService.getJobOffersByTechnology("Java"));
-    }
+    }*/
 }

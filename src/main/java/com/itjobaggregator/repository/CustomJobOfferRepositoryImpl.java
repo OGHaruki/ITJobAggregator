@@ -27,7 +27,7 @@ public class CustomJobOfferRepositoryImpl implements CustomJobOfferRepository {
         return query.getResultList().stream().findFirst();
     }
 
-    @Override
+    /*@Override
     public Optional<List<JobOffer>> findJobOfferByTechStack(String stack) {
         String jpql = "SELECT job FROM JobOffer job JOIN job.requiredSkills skills WHERE skills.skill = :stack";
 
@@ -35,5 +35,5 @@ public class CustomJobOfferRepositoryImpl implements CustomJobOfferRepository {
         query.setParameter("stack", stack);
 
         return Optional.of(query.getResultList());
-    }
+    }*/
 }

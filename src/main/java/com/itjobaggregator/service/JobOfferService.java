@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -254,11 +255,8 @@ public class JobOfferService {
         return jobOfferList;
     }
 
-    public List<JobOffer> getJobOffers() {
-        return jobOfferRepository.findAll();
+    public List<JobOffer> getJobOffers(List<String> tech, List<String> seniority, List<String> location, LocalDate from, LocalDate to) {
+        return jobOfferRepository.findJobOffers(tech, seniority, location, from, to);
     }
 
-    public Optional<List<JobOffer>> getJobOffersByTechnology(String stack) {
-        return jobOfferRepository.findJobOfferByTechStack(stack);
-    }
 }
