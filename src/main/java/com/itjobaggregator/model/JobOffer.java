@@ -1,7 +1,10 @@
 package com.itjobaggregator.model;
 
+import com.itjobaggregator.service.JobOfferService;
 import jakarta.persistence.*;
 import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -9,6 +12,8 @@ import java.util.*;
 @Data
 @Table(name = "job_offer")
 public class JobOffer {
+
+    private static final Logger log = LoggerFactory.getLogger(JobOfferService.class);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +23,6 @@ public class JobOffer {
     private String companyName;
     private String workplaceType;
     private String experienceLevel;
-    //private String rawData;
 
     @Enumerated(EnumType.STRING)
     private JobSource source;
@@ -30,9 +34,6 @@ public class JobOffer {
             inverseJoinColumns = @JoinColumn(name = "required_skills_id")
     )
     private Set<RequiredSkills> requiredSkills = new HashSet<>();
-
-    /*@OneToMany(mappedBy = "jobOffer", cascade = CascadeType.ALL)
-    private List<JobLocation> jobLocations = new ArrayList<>();*/
 
     @ManyToMany
     @JoinTable(
@@ -53,8 +54,12 @@ public class JobOffer {
     }
 
     public void addJobLocation(JobLocation jobLocation) {
-        this.jobLocations.add(jobLocation);
-        jobLocation.getJobOffers().add(this);
+        List<String> cities = new ArrayList<>();
+        this.jobLocations.forEach(location -> cities.add(location.getCity()));
+        if (!cities.contains(jobLocation.getCity())) {
+            this.jobLocations.add(jobLocation);
+            jobLocation.getJobOffers().add(this);
+        }
     }
 
     public void removeJobLocation(JobLocation jobLocation) {

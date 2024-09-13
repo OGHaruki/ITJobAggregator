@@ -30,8 +30,8 @@ import org.slf4j.Logger;
 @Service
 public class JobOfferService {
 
-    @Autowired
-    private RequiredSkillService requiredSkillService;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     private JobOfferRepository jobOfferRepository;
@@ -39,8 +39,8 @@ public class JobOfferService {
     @Autowired
     private JobLocationService jobLocationService;
 
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private RequiredSkillService requiredSkillService;
 
     private static final Logger log = LoggerFactory.getLogger(JobOfferService.class);
 
@@ -50,44 +50,29 @@ public class JobOfferService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 3600000) // Automatically fetch new job offers every 6 hours
-    public void fetchAndSaveJobOffers() throws JsonProcessingException {
-        // Fetch job offers from JustJoinIT API
-        String justJoinItUrl = "https://api.justjoin.it/v2/user-panel/offers?&page=2&sortBy=published&orderBy=DESC&perPage=100&salaryCurrencies=PLN";
-        String justJoinItResponse = fetchJustJoinItJobOffers(justJoinItUrl);
+    public void fetchAndSaveJobOffers() {
+        log.info("Fetching job offers from JustJoinIt...");
+        String justJoinItURL = "https://api.justjoin.it/v2/user-panel/offers?&page=2&sortBy=published&orderBy=DESC&perPage=100&salaryCurrencies=PLN";
+        String noFluffJobsURL = "https://nofluffjobs.com/api/joboffers/main?pageTo=2&pageSize=20&withSalaryMatch=true&salaryCurrency=PLN&salaryPeriod=month&region=pl&language=pl-PL";
 
-        String noFluffJobsUrl = "https://nofluffjobs.com/api/joboffers/main?pageTo=2&pageSize=20&withSalaryMatch=true&salaryCurrency=PLN&salaryPeriod=month&region=pl&language=pl-PL";
-        String noFluffJobsResponse = fetchNoFluffJobOffers(noFluffJobsUrl);
+        try {
+            String justJoinItResponse = fetchJobOffersFromJustJoinIt(justJoinItURL);
+            String noFluffJobsResponse = fetchJobOffersFromNoFluffJobs(noFluffJobsURL);
 
-        // Parse and save job offers to database
-        if (justJoinItResponse != null) {
-            List<JobOffer> jobOfferList = parseJustJoinItResponse(justJoinItResponse);
-            saveNewJobOffers(jobOfferList);
-        }
-
-        if (noFluffJobsResponse != null) {
-            List<JobOffer> jobOfferList = parseNoFluffResponse(noFluffJobsResponse);
-            saveNewJobOffers(jobOfferList);
-
-        }
-    }
-
-    @Transactional
-    void saveNewJobOffers(List<JobOffer> jobOfferList) {
-        for (JobOffer jobOffer : jobOfferList) {
-            Optional<JobOffer> existingJobOffer = jobOfferRepository.findFirstJobOfferBySlug(jobOffer.getSlug());
-
-            if(existingJobOffer.isEmpty()) {
-                jobOfferRepository.save(jobOffer);
-                log.info("Saved new job offer: {}", jobOffer);
-            } else {
-                log.info("Found existing job offer: {}", existingJobOffer);
+            if(justJoinItResponse != null) {
+                List<JobOffer> jobOffers = parseJobOffersFromJustJoinIt(justJoinItResponse);
+                saveNewJobOffers(jobOffers);
             }
+            if(noFluffJobsResponse != null) {
+                List<JobOffer> jobOffers = parseJobOffersFromNoFluffJobs(noFluffJobsResponse);
+                saveNewJobOffers(jobOffers);
+            }
+        } catch (Exception e) {
+            log.error("An error occurred while fetching job offers from JustJoinIt: " + e.getMessage());
         }
     }
 
-
-    private String fetchJustJoinItJobOffers(String url) {
+    private String fetchJobOffersFromJustJoinIt(String url) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
@@ -106,21 +91,21 @@ public class JobOfferService {
                 .GET()
                 .build();
 
-        HttpResponse<String> response;
-
         try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if(response.statusCode() != 200) {
-                System.out.println("Failed to fetch job offers from JustJoinIT API. HTTP status code: " + response.statusCode());
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                log.warn("Failed to fetch job offers. HTTP Status: {}", response.statusCode());
+                return null;
             }
+            log.info("Successfully fetched job offers from JustJoinIt.");
+            return response.body();
         } catch (IOException | InterruptedException e) {
-            log.info("Failed to fetch job offers from JustJoinIT API", e);
+            log.error("Error while fetching job offers from JustJoinIt", e);
             return null;
         }
-        return response.body();
     }
 
-    private String fetchNoFluffJobOffers(String url) {
+    private String fetchJobOffersFromNoFluffJobs(String url) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0")
@@ -138,24 +123,22 @@ public class JobOfferService {
                 .GET()
                 .build();
 
-        HttpResponse<String> response;
-
         try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if(response.statusCode() != 200) {
-                System.out.println("Failed to fetch job offers from NoFluffJobs API. HTTP status code: " + response.statusCode());
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                log.warn("Failed to fetch job offers. HTTP Status: {}", response.statusCode());
+                return null;
             }
+            log.info("Successfully fetched job offers from NoFluffJobs.");
+            return response.body();
         } catch (IOException | InterruptedException e) {
-            log.info("Failed to fetch job offers from NoFluffJobs API", e);
+            log.error("Error while fetching job offers from NoFluffJobs", e);
             return null;
         }
-        return response.body();
     }
 
-
-    private List<JobOffer> parseJustJoinItResponse(String justJoinItResponse) throws JsonProcessingException {
-
-        JsonNode rootNode = objectMapper.readTree(justJoinItResponse);
+    private List<JobOffer> parseJobOffersFromJustJoinIt(String response) throws JsonProcessingException {
+        JsonNode rootNode = objectMapper.readTree(response);
         JsonNode jobOffersNode = rootNode.get("data");
         List<JobOffer> jobOfferList = new ArrayList<>();
 
@@ -166,7 +149,6 @@ public class JobOfferService {
             jobOffer.setCompanyName(jobNode.get("companyName").asText());
             jobOffer.setWorkplaceType(jobNode.get("workplaceType").asText());
             jobOffer.setExperienceLevel(jobNode.get("experienceLevel").asText());
-            //1jobOffer.setRawData(jobNode.toString());
             jobOffer.setSource(JobSource.JustJoinIT);
 
             List<String> requiredSkills = new ArrayList<>();
@@ -191,7 +173,7 @@ public class JobOfferService {
         return jobOfferList;
     }
 
-    private List<JobOffer> parseNoFluffResponse(String noFluffJobsResponse) throws JsonProcessingException {
+    private List<JobOffer> parseJobOffersFromNoFluffJobs(String noFluffJobsResponse) throws JsonProcessingException {
 
         JsonNode rootNode = objectMapper.readTree(noFluffJobsResponse);
         JsonNode jobOffersNode = rootNode.get("postings");
@@ -255,8 +237,18 @@ public class JobOfferService {
         return jobOfferList;
     }
 
-    public List<JobOffer> getJobOffers(List<String> tech, List<String> seniority, List<String> location, LocalDate from, LocalDate to) {
-        return jobOfferRepository.findJobOffers(tech, seniority, location, from, to);
-    }
+    @Transactional
+    void saveNewJobOffers(List<JobOffer> jobOfferList) {
+        for (JobOffer jobOffer : jobOfferList) {
 
+            Optional<JobOffer> existingJobOffer = jobOfferRepository.findFirstJobOfferBySlug(jobOffer.getSlug());
+
+            if (existingJobOffer.isEmpty()) {
+                jobOfferRepository.save(jobOffer);
+                log.info("Saved new job offer: {}", jobOffer);
+            } else {
+                log.info("Job offer already exists, skipping: {}", jobOffer);
+            }
+        }
+    }
 }

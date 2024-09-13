@@ -16,7 +16,6 @@ public class RequiredSkillService {
     @Autowired
     private RequiredSkillsRepository requiredSkillsRepository;
 
-
     @Transactional
     public void saveSkillsToDatabase(JobOffer jobOffer, List<String> requiredSkills) {
         for (String skill : requiredSkills) {

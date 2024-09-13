@@ -16,7 +16,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=admin
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     volumes:
-      - app-data:/app/data
+      - ./app-data:/app/data
+      - ./logs:/app/data/logs
     ports:
       - "8080:8080"
 

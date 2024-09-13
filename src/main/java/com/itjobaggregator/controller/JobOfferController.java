@@ -39,7 +39,7 @@ public class JobOfferController {
         }
     }
 
-    @GetMapping("/offers")
+    /*@GetMapping("/offers")
     public ResponseEntity<List<JobOffer>> getJobOffers(
             @RequestParam(name= "tech", required = false) List<String> tech,
             @RequestParam(name = "seniority", required = false) List<String> seniority,
@@ -54,16 +54,5 @@ public class JobOfferController {
         }
 
         return ResponseEntity.ok(jobOffers);
-    }
-
-    /*@Operation(description = "Get all job offers")
-    @GetMapping("/job-offers")
-    public ResponseEntity<List<JobOffer>> getJobOffers() {
-        return ResponseEntity.ok(jobOfferService.getJobOffers());
-    }
-
-    @GetMapping("/job-offers/java")
-    public ResponseEntity<Optional<List<JobOffer>>> getJavaJobOffers() {
-        return ResponseEntity.ok(jobOfferService.getJobOffersByTechnology("Java"));
     }*/
 }

@@ -6,6 +6,8 @@ import com.itjobaggregator.model.JobOffer;
 import com.itjobaggregator.repository.JobLocationRepository;
 import com.itjobaggregator.repository.JobOfferRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,21 @@ public class JobLocationService {
     @Autowired
     private JobLocationRepository jobLocationRepository;
 
-    @Autowired
-    private JobOfferRepository jobOfferRepository;
+    private static final Logger log = LoggerFactory.getLogger(JobOfferService.class);
 
-    @Transactional
+    /*public void saveCityToDatabase(JobOffer jobOffer, String city, Double latitude, Double longitude) {
+        Optional<JobLocation> existingLocation = Optional.of(jobLocationRepository.findJobLocationByCity(city)
+                .orElseGet(() -> {
+                    JobLocation newLocation = new JobLocation();
+                    newLocation.setCity(city);
+                    newLocation.setLatitude(latitude);
+                    newLocation.setLongitude(longitude);
+                    return jobLocationRepository.save(newLocation);
+                }));
+
+        existingLocation.ifPresent(jobOffer::addJobLocation);
+    }*/
+
     public void saveCityToDatabase(JobOffer jobOffer, String city, Double latitude, Double longitude) {
         Optional<JobLocation> existingLocation = jobLocationRepository.findJobLocationByCity(city);
         JobLocation jobLocation;
@@ -35,9 +48,6 @@ public class JobLocationService {
             jobLocationRepository.save(jobLocation);
         }
 
-        if (!jobOffer.getJobLocations().contains(jobLocation)) {
-            jobOffer.addJobLocation(jobLocation);
-            jobOfferRepository.save(jobOffer);
-        }
+        jobOffer.addJobLocation(jobLocation);
     }
 }

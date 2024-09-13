@@ -21,9 +21,6 @@ public class CustomJobOfferRepositoryImpl implements CustomJobOfferRepository {
         query.setParameter("slug", slug);
         query.setMaxResults(1);
 
-        System.out.println("CustomJobOfferRepositoryImpl.findFirstJobOfferBySlug: " +
-                query.getResultList().stream().findFirst());
-
         return query.getResultList().stream().findFirst();
     }
 

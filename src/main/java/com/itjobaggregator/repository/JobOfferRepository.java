@@ -8,7 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface JobOfferRepository extends JpaRepository<JobOffer, Long>, CustomJobOfferRepository {
+
+    Optional<JobOffer> findFirstBySlug(String slug);
+
+    List<JobOffer> findAllBySlugIn(List<String> slugs);
+
     Optional<JobOffer> findFirstJobOfferBySlug(String slug);
 
-    List<JobOffer> findJobOffersByParameters(List<String> tech, List<String> seniority, List<String> location, LocalDate from, LocalDate to);
+    boolean existsBySlug(String slug);
 }
