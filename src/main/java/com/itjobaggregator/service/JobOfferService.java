@@ -21,7 +21,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -149,6 +152,7 @@ public class JobOfferService {
             jobOffer.setCompanyName(jobNode.get("companyName").asText());
             jobOffer.setWorkplaceType(jobNode.get("workplaceType").asText());
             jobOffer.setExperienceLevel(jobNode.get("experienceLevel").asText());
+            jobOffer.setCreatedAt(LocalDate.parse(parseDate(jobNode.get("publishedAt").asText())));
             jobOffer.setSource(JobSource.JustJoinIT);
 
             List<String> requiredSkills = new ArrayList<>();
@@ -241,7 +245,7 @@ public class JobOfferService {
     void saveNewJobOffers(List<JobOffer> jobOfferList) {
         for (JobOffer jobOffer : jobOfferList) {
 
-            Optional<JobOffer> existingJobOffer = jobOfferRepository.findFirstJobOfferBySlug(jobOffer.getSlug());
+            Optional<JobOffer> existingJobOffer = jobOfferRepository.findFirstBySlug(jobOffer.getSlug());
 
             if (existingJobOffer.isEmpty()) {
                 jobOfferRepository.save(jobOffer);
@@ -250,5 +254,15 @@ public class JobOfferService {
                 log.info("Job offer already exists, skipping: {}", jobOffer);
             }
         }
+    }
+
+    public static String parseDate(String dateTimeString) {
+        Instant instant = Instant.parse(dateTimeString);
+        LocalDate localDate = instant.atZone(ZoneId.of("UTC")).toLocalDate();
+        return localDate.toString();
+    }
+
+    public List<JobOffer> getJobOffers(List<String> tech, List<String> seniority, List<String> location, LocalDate from, LocalDate to) {
+        return jobOfferRepository.findJobOffers(tech, seniority, location, from, to);
     }
 }

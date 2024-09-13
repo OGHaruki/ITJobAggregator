@@ -43,7 +43,7 @@ public class JobOfferServiceTest {
         newJobOffer.setTitle("Java Developer");
         newJobOffer.setCompanyName("Non-existing-location");
 
-        when(jobOfferRepository.findFirstJobOfferBySlug(newJobOffer.getSlug())).thenReturn(Optional.empty());
+        when(jobOfferRepository.findFirstBySlug(newJobOffer.getSlug())).thenReturn(Optional.empty());
 
         jobOfferService.saveNewJobOffers(Collections.singletonList(newJobOffer));
 
@@ -59,7 +59,7 @@ public class JobOfferServiceTest {
         newJobOffer.setTitle("Java Developer");
         newJobOffer.setCompanyName("Non-existing-location");
 
-        when(jobOfferRepository.findFirstJobOfferBySlug(newJobOffer.getSlug())).thenReturn(Optional.of(newJobOffer));
+        when(jobOfferRepository.findFirstBySlug(newJobOffer.getSlug())).thenReturn(Optional.of(newJobOffer));
 
         jobOfferService.saveNewJobOffers(Collections.singletonList(newJobOffer));
 
@@ -72,9 +72,9 @@ public class JobOfferServiceTest {
         JobOffer jobOffer = new JobOffer();
         jobOffer.setSlug(slug);
 
-        when(jobOfferRepository.findFirstJobOfferBySlug(slug)).thenReturn(Optional.of(jobOffer));
+        when(jobOfferRepository.findFirstBySlug(slug)).thenReturn(Optional.of(jobOffer));
 
-        Optional<JobOffer> result = jobOfferRepository.findFirstJobOfferBySlug(slug);
+        Optional<JobOffer> result = jobOfferRepository.findFirstBySlug(slug);
 
         assertTrue(result.isPresent());
         assertEquals(slug, result.get().getSlug());

@@ -1,6 +1,7 @@
 package com.itjobaggregator.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class JobLocation {
     private Double longitude;
 
     @ManyToMany(mappedBy = "jobLocations")
+    @JsonBackReference
     private Set<JobOffer> jobOffers = new HashSet<>();
 
     public void addJobOffer(JobOffer jobOffer) {

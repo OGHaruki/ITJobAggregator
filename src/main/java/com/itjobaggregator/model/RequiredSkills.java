@@ -1,6 +1,7 @@
 package com.itjobaggregator.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class RequiredSkills {
     private String name;
 
     @ManyToMany(mappedBy = "requiredSkills")
+    @JsonBackReference
     private Set<JobOffer> jobOffers = new HashSet<>();
 
     public void addJobOffer(JobOffer jobOffer) {

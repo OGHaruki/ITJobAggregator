@@ -39,7 +39,7 @@ public class JobOfferController {
         }
     }
 
-    /*@GetMapping("/offers")
+    @GetMapping("/offers")
     public ResponseEntity<List<JobOffer>> getJobOffers(
             @RequestParam(name= "tech", required = false) List<String> tech,
             @RequestParam(name = "seniority", required = false) List<String> seniority,
@@ -54,5 +54,5 @@ public class JobOfferController {
         }
 
         return ResponseEntity.ok(jobOffers);
-    }*/
+    }
 }
