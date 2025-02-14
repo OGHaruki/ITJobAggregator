@@ -1,10 +1,10 @@
 # IT Job Offer Aggregator 🔍
 
-This application fetches job offers from various popular job boards, processes them, and provides a unified API to access all aggregated job listings in one place. It's particularly focused on IT and tech-related positions.
-
 [![Docker](https://img.shields.io/badge/Docker-✓-blue?logo=docker)](https://www.docker.com)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-2.6-6BA539?logo=openapi-initiative)](https://swagger.io/specification/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.1-6DB33F?logo=spring)](https://spring.io/projects/spring-boot)
+
+This application fetches job offers from various popular job boards, processes them, and provides a unified API to access all aggregated job listings in one place. It's particularly focused on IT and tech-related positions.
 
 ## 🌟 Features
 - Automated job offer fetching from multiple sources
