@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # IT Job Offer Aggregator 🔍
 
 [![Docker](https://img.shields.io/badge/Docker-✓-blue?logo=docker)](https://www.docker.com)
@@ -86,3 +87,6 @@ Here are the planned future enhancements for the IT Job Aggregator:
      
 ## 📄 Author
 MIT License © 2024 Adam
+=======
+# ITJobAggregator
+>>>>>>> 4dc2845f49b47c6f8d93ef4b9bd8659169807b0c
